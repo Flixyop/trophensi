@@ -1,0 +1,39 @@
+name: build-and-release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Install deps
+        run: uv sync --dev
+
+      - name: Build executable
+        run: uv run pyinstaller --onefile -m monapp
+
+      - name: Rename binary
+        run: |
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            mv dist/monapp.exe monapp-${{ runner.os }}.exe
+          else
+            mv dist/monapp monapp-${{ runner.os }}
+          fi
+        shell: bash
+
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: monapp-*
