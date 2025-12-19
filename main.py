@@ -1,6 +1,8 @@
 import pygame
-from entity import Entity, Player, Goblin, move
+import random
+from entity import Entity, Player, Goblin
 from consts import PIXEL_SIZE, BOARD_SIZE, SCREEN_SIZE
+from direction import Direction
 
 
 def load_asset():
@@ -28,12 +30,12 @@ def print_grass(screen, assets):
             print_screen(screen, assets["grass"], i, j)
 
 
-def print_entities(screen, assets):
+def print_entities(screen, entities: set[Entity], assets):
     for entity in entities:
         print_screen(screen, assets[entity.img], entity.x, entity.y)
 
 
-def play_the_game(entities: [Entity]):
+def play_the_game(players: set[Player], goblins: set[Goblin]):
     assets = load_asset()
 
     running = True
@@ -49,18 +51,35 @@ def play_the_game(entities: [Entity]):
             if event.type == pygame.QUIT:
                 running = False
             if event.type == MOVE_EVENT:
-                move(entities)
+                move(players, goblins)
 
         screen.fill((255, 255, 255))
 
         print_grass(screen, assets)
-        print_entities(screen, assets)
+        print_entities(screen, players | goblins, assets)
 
         pygame.display.flip()
 
     pygame.quit()
 
 
-entities = [Player(i, i) for i in range(25)] + [Goblin(i, i) for i in range(26, 30)]
+def move(players: set[Player], goblins: set[Goblin]):
+    for entity in players:
+        dir = random.choice(list(Direction))
 
-play_the_game(entities)
+        entity.move(dir)
+
+    for goblin in goblins:
+        dir = random.choice(list(Direction))
+        goblin.move(dir)
+
+        target = next((p for p in players if p.x == goblin.x and p.y == goblin.y), None)
+
+        if target is not None:
+            players.remove(target)
+
+
+players = set([Player(i, i) for i in range(25)])
+goblins = set([Goblin(i, i) for i in range(26, 30)])
+
+play_the_game(players, goblins)
