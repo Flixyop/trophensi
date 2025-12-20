@@ -10,8 +10,8 @@ class Entity:
 
     def move(self, dir: Direction):
         dir = dir.value
-        self.x = min(max(0, self.x + dir[0]), BOARD_SIZE[0] - 1)
-        self.y = min(max(0, self.y + dir[1]), BOARD_SIZE[1] - 1)
+        self.x = (self.x + dir[0]) % BOARD_SIZE[0]
+        self.y = (self.y + dir[1]) % BOARD_SIZE[1]
 
 
 class Player(Entity):
