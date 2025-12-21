@@ -1,5 +1,5 @@
 from direction import Direction
-from consts import BOARD_SIZE
+from utils import *
 
 
 class Entity:
@@ -17,10 +17,10 @@ class Entity:
 class Player(Entity):
     def __init__(self, x, y):
         super().__init__(x, y)
-        self.img = "player"
+        self.sprite_img = player_asset
 
 
 class Goblin(Entity):
     def __init__(self, x, y):
         super().__init__(x, y)
-        self.img = "goblin"
+        self.sprite_img = gobelin_asset

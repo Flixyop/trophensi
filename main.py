@@ -1,70 +1,83 @@
 import pygame
 import random
 from entity import Entity, Player, Goblin
-from consts import PIXEL_SIZE, BOARD_SIZE, SCREEN_SIZE
+from utils import *
 from direction import Direction
 
 
-def load_asset():
-    assets = {
-        "goblin": None,
-        "grass": None,
-        "player": None,
-    }
+pygame.init()
 
-    for key in assets:
-        img = pygame.image.load(key + ".png")
-        assets[key] = pygame.transform.scale(img, (PIXEL_SIZE, PIXEL_SIZE))
+screen = pygame.display.set_mode(SCREEN_SIZE)
 
-    assets["goblin"].set_colorkey((255, 255, 255))
-    return assets
+entities = []
 
 
-def print_screen(screen, img, x, y):
-    screen.blit(img, (x * PIXEL_SIZE, y * PIXEL_SIZE))
+
+class Game:
+    def __init__(self, screen):
+        self.screen = screen
+    
+    def run(self):
+        running = True
+        while running:
+            self.MOVE_EVENT = pygame.USEREVENT + 1
+            pygame.time.set_timer(self.MOVE_EVENT, 100)
+
+            self.event()
+            self.draw()
+            self.update()
+        pygame.quit()
+            
 
 
-def print_grass(screen, assets):
-    for i in range(BOARD_SIZE[0]):
-        for j in range(BOARD_SIZE[1]):
-            print_screen(screen, assets["grass"], i, j)
+    def draw(self):
+        self.screen.fill((255, 255, 255))
+        self.draw_background()
+        self.draw_entities(entities)
+        
 
-
-def print_entities(screen, entities: set[Entity], assets):
-    for entity in entities:
-        print_screen(screen, assets[entity.img], entity.x, entity.y)
-
-
-def play_the_game(players: set[Player], goblins: set[Goblin]):
-    assets = load_asset()
-
-    running = True
-
-    pygame.init()
-
-    screen = pygame.display.set_mode(SCREEN_SIZE)
-    MOVE_EVENT = pygame.USEREVENT + 1
-    pygame.time.set_timer(MOVE_EVENT, 100)
-
-    while running:
+    def event(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-            if event.type == MOVE_EVENT:
+            if event.type == self.MOVE_EVENT:
                 move(players, goblins)
 
-        screen.fill((255, 255, 255))
-
-        print_grass(screen, assets)
-        print_entities(screen, players | goblins, assets)
-
+    def update(self):
         pygame.display.flip()
 
-    pygame.quit()
+    def draw_image(self, img, x, y):
+        self.screen.blit(img, (x * PIXEL_SIZE, y * PIXEL_SIZE)) 
+    
+    def draw_background(self):
+        village_map = pygame.image.load(village_map_asset)
+        self.draw_image(village_map, (0, 0))
+
+    def draw_entities(self, entities):
+        for entity in entities:
+            self.draw_image(entity.x, entity.y)
+
+
+
+    
+
+    
+    
+
+    
+        
+
+        
+
+
+
+       
+
+    
 
 
 def choose_dir_from(left, right, down, up):
-    if min(left, right) > min(down, up) :
+    if min(left, right) > min (down, up) :
         if left >= right :
             return Direction.Left
         else :
@@ -116,4 +129,6 @@ def move(players: set[Player], goblins: set[Goblin]):
 players = set([Player(i, i) for i in range(6)])
 goblins = set([Goblin(i, i) for i in range(26, 30)])
 
-play_the_game(players, goblins)
+game = Game(screen)
+
+game.run()
