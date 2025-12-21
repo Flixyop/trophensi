@@ -44,7 +44,7 @@ def play_the_game(players: set[Player], goblins: set[Goblin]):
 
     screen = pygame.display.set_mode(SCREEN_SIZE)
     MOVE_EVENT = pygame.USEREVENT + 1
-    pygame.time.set_timer(MOVE_EVENT, 1000)
+    pygame.time.set_timer(MOVE_EVENT, 100)
 
     while running:
         for event in pygame.event.get():
@@ -63,6 +63,41 @@ def play_the_game(players: set[Player], goblins: set[Goblin]):
     pygame.quit()
 
 
+def choose_dir_from(left, right, down, up):
+    if min(left, right) > min(down, up) :
+        if left >= right :
+            return Direction.Left
+        else :
+            return Direction.Right
+    else :
+        if down >= up:
+            return Direction.Down
+        else :
+            return Direction.Up
+
+
+def move_goblin(goblin, players):
+    dir = random.choice(list(Direction))
+    best_dist = 1000
+
+    for p in players:
+        left = (goblin.x - p.x) % BOARD_SIZE[0]
+        right = BOARD_SIZE[0] - left
+
+        down = (goblin.y - p.y) % BOARD_SIZE[1]
+        up = BOARD_SIZE[1] - down
+
+        dx = min(left, right)
+        dy = min(up, down)
+
+        dist = dx + dy
+        if dist < best_dist and dist <= 10:
+            best_dist = dist
+            dir = choose_dir_from(left, right, down, up)
+
+    return dir
+
+
 def move(players: set[Player], goblins: set[Goblin]):
     for entity in players:
         dir = random.choice(list(Direction))
@@ -70,8 +105,7 @@ def move(players: set[Player], goblins: set[Goblin]):
         entity.move(dir)
 
     for goblin in goblins:
-        dir = random.choice(list(Direction))
-        goblin.move(dir)
+        goblin.move(move_goblin(goblin, players))
 
         target = next((p for p in players if p.x == goblin.x and p.y == goblin.y), None)
 
@@ -79,7 +113,7 @@ def move(players: set[Player], goblins: set[Goblin]):
             players.remove(target)
 
 
-players = set([Player(i, i) for i in range(25)])
+players = set([Player(i, i) for i in range(6)])
 goblins = set([Goblin(i, i) for i in range(26, 30)])
 
 play_the_game(players, goblins)

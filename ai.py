@@ -5,6 +5,7 @@ from direction import Direction
 
 ALPHA = 0.1
 
+
 def sigmoid(x):
     return 1 / (1 + math.exp(-x))
 
@@ -21,7 +22,7 @@ class Model:
 
     def forward(self, inputs):
         self.last_input = inputs
-        self.last_z = sum([w* x for w,x in zip(self.weights, inputs)])  + self.biais
+        self.last_z = sum([w * x for w, x in zip(self.weights, inputs)]) + self.biais
 
         self.last = sigmoid(self.last_z)
         return self.last
@@ -31,23 +32,25 @@ class Model:
 
         dz = error * sigmoid_derivative(self.last_z)
 
-        self.weights = [w - ALPHA * dz * las for w, las in zip(self.weights, self.last_input)]
+        self.weights = [
+            w - ALPHA * dz * las for w, las in zip(self.weights, self.last_input)
+        ]
         self.biais -= ALPHA * dz
+
 
 m = Model()
 
 for _ in range(1000000):
     for i in range(2):
         for j in range(2):
-            m.forward([i,j])
-            m.backward((i+j)%2)
+            m.forward([i, j])
+            m.backward((i + j) % 2)
 
-print(m.forward([0,0]))
-print(m.forward([0,1]))
-print(m.forward([1,0]))
-print(m.forward([1,1]))
+print(m.forward([0, 0]))
+print(m.forward([0, 1]))
+print(m.forward([1, 0]))
+print(m.forward([1, 1]))
 
-    
 
 def new_game():
     players = [Player(i, i) for i in range(25)]
