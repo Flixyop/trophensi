@@ -12,11 +12,10 @@ screen = pygame.display.set_mode(SCREEN_SIZE)
 entities = []
 
 
-
 class Game:
     def __init__(self, screen):
         self.screen = screen
-    
+
     def run(self):
         running = True
         while running:
@@ -27,14 +26,11 @@ class Game:
             self.draw()
             self.update()
         pygame.quit()
-            
-
 
     def draw(self):
         self.screen.fill((255, 255, 255))
         self.draw_background()
         self.draw_entities(entities)
-        
 
     def event(self):
         for event in pygame.event.get():
@@ -47,8 +43,8 @@ class Game:
         pygame.display.flip()
 
     def draw_image(self, img, x, y):
-        self.screen.blit(img, (x * PIXEL_SIZE, y * PIXEL_SIZE)) 
-    
+        self.screen.blit(img, (x * PIXEL_SIZE, y * PIXEL_SIZE))
+
     def draw_background(self):
         village_map = pygame.image.load(village_map_asset)
         self.draw_image(village_map, (0, 0))
@@ -58,34 +54,16 @@ class Game:
             self.draw_image(entity.x, entity.y)
 
 
-
-    
-
-    
-    
-
-    
-        
-
-        
-
-
-
-       
-
-    
-
-
 def choose_dir_from(left, right, down, up):
-    if min(left, right) > min (down, up) :
-        if left >= right :
+    if min(left, right) > min(down, up):
+        if left >= right:
             return Direction.Left
-        else :
+        else:
             return Direction.Right
-    else :
+    else:
         if down >= up:
             return Direction.Down
-        else :
+        else:
             return Direction.Up
 
 
