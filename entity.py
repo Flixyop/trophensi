@@ -43,7 +43,7 @@ class Goblin(Entity):
                 best_dist = dist
                 dir = choose_dir_from(left, right, down, up)
 
-        return dir
+        super().move(dir)
 
 
 def choose_dir_from(left, right, down, up):

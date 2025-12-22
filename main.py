@@ -97,8 +97,8 @@ class Game:
                 self.entities.players.remove(target)
 
 
-players = set([Player(i, i) for i in range(6)])
-goblins = set([Goblin(i, i) for i in range(26, 30)])
+players = set([Player(i, i) for i in range(3)])
+goblins = set([Goblin(i, i) for i in range(4, 10)])
 
 game = Game(screen, Entities(players, goblins))
 
