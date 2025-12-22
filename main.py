@@ -9,26 +9,43 @@ pygame.init()
 
 screen = pygame.display.set_mode(SCREEN_SIZE)
 
+
 class Entities:
     def __init__(self, players, goblins):
         self.players = players
         self.goblins = goblins
 
+
 class Game:
     def __init__(self, screen, entities):
         self.screen = screen
         self.entities = entities
-        assets = {"goblin" : GOBLIN_ASSET, "village_map" : VILLAGE_MAP_ASSET, "player" : PLAYER_ASSET}
 
+        assets = {
+            "goblin": GOBLIN_ASSET,
+            "village_map": VILLAGE_MAP_ASSET,
+            "player": PLAYER_ASSET,
+        }
         self.assets = {k: pygame.image.load(v) for k, v in assets.items()}
+        self.assets["goblin"] = pygame.transform.scale(
+            self.assets["goblin"], (PIXEL_SIZE, PIXEL_SIZE)
+        )
+        self.assets["player"] = pygame.transform.scale(
+            self.assets["player"], (PIXEL_SIZE, PIXEL_SIZE)
+        )
 
+        self.clock = pygame.Clock()
+        self.running = False
 
     def run(self):
-        running = True
-        while running:
+        self.running = True
+
+        while self.running:
             self.event()
             self.draw()
             self.update()
+            self.clock.tick(1)
+
         pygame.quit()
 
     def draw(self):
@@ -39,7 +56,7 @@ class Game:
     def event(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                running = False
+                self.running = False
 
     def update(self):
         self.move()
@@ -67,7 +84,14 @@ class Game:
         for goblin in self.entities.goblins:
             goblin.move(self.entities.players)
 
-            target = next((p for p in self.entities.players if p.x == goblin.x and p.y == goblin.y), None)
+            target = next(
+                (
+                    p
+                    for p in self.entities.players
+                    if p.x == goblin.x and p.y == goblin.y
+                ),
+                None,
+            )
 
             if target is not None:
                 self.entities.players.remove(target)

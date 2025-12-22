@@ -57,4 +57,3 @@ def choose_dir_from(left, right, down, up):
             return Direction.Down
         else:
             return Direction.Up
-
