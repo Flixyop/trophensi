@@ -34,7 +34,7 @@ class Game:
             self.assets["player"], (PIXEL_SIZE, PIXEL_SIZE)
         )
 
-        self.clock = pygame.Clock()
+        self.clock = pygame.time.Clock()
         self.running = False
 
     def run(self):
