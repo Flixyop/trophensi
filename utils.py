@@ -1,20 +1,24 @@
 # Constante
 
-PIXEL_SIZE = 25
 BOARD_SIZE = (35, 25)
 
-SCREEN_SIZE = [PIXEL_SIZE * BOARD_SIZE[0], PIXEL_SIZE * BOARD_SIZE[1]]
+TILE_SIZE_RAW = 16
 
-world_width = 100
-world_height = 100
+SCREEN_SIZE = [1280, 720]
+
+WORLD_WIDTH = 100
+WORLD_HEIGHT = 100
+
+ZOOM_LEVEL = 3
+
+PIXEL_SIZE = TILE_SIZE_RAW * ZOOM_LEVEL
 
 village_coord = (30, 30)
 
-facteur = 
 
 # Assets
 
 VILLAGE_MAP_ASSET = "assets/map/map_village.png"
-VILLAGE_MAP_ASSET = pygame.transform.scale(VILLAGE_MAP_ASSET, )
 PLAYER_ASSET = "assets/entity/player/idle/1.png"
 GOBLIN_ASSET = "assets/entity/enemy/goblin/idle/1.png"
+GRASS_TILESET_ASSET = "assets/map/tilesets/path-grass.png"
