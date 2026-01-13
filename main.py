@@ -64,6 +64,15 @@ class Game:
         self.running = False
         self.MOVE_EVENT = pygame.USEREVENT + 1
 
+        # Partie Zone Selection
+
+        self.selection_start_point = (0, 0)
+        self.is_user_selecting = False
+
+        # Partie Zone map
+
+        self.map_data = [[0 for y in range(WORLD_HEIGHT)] for x in range(WORLD_WIDTH)]
+
     def run(self):
         self.running = True
         pygame.time.set_timer(self.MOVE_EVENT, 1000)
@@ -80,6 +89,7 @@ class Game:
         self.screen.fill((255, 255, 255))
         self.draw_background()
         self.draw_entities()
+        self.draw_screen_selection()
 
     def event(self):
         for event in pygame.event.get():
@@ -91,6 +101,15 @@ class Game:
                 global SCREEN_SIZE 
                 SCREEN_SIZE[0] = event.w
                 SCREEN_SIZE[1] = event.h
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 3:
+                    self.selection_start_point = pygame.mouse.get_pos()
+                    self.is_user_selecting = True
+            elif event.type == pygame.MOUSEBUTTONUP:
+                if event.button == 3:
+                    self.selection_start_point = (0, 0)
+                    self.is_user_selecting = False
+        
 
     def update(self):
 
@@ -128,6 +147,15 @@ class Game:
         for goblin in self.entities.goblins:
             self.draw_image("goblin", goblin.x, goblin.y)
 
+    def draw_screen_selection(self):
+        if self.is_user_selecting:
+            area = self.make_selection_area()
+            area_element = area[0]
+            top_left_corner = area[1]
+            self.screen.blit(area_element, top_left_corner)
+
+
+
     def move(self):
         for player in self.entities.players:
             dir = random.choice(list(Direction))
@@ -154,7 +182,14 @@ class Game:
         height = image.get_height()
         new_size = (width * ZOOM_LEVEL, height * ZOOM_LEVEL)
         return pygame.transform.scale(image, new_size)
-
+    
+    def make_selection_area(self):
+        weight = abs(self.selection_start_point[0] - pygame.mouse.get_pos()[0])
+        height = abs(self.selection_start_point[1] - pygame.mouse.get_pos()[1])
+        top_left_corner = (min(pygame.mouse.get_pos()[0], self.selection_start_point[0]), min(pygame.mouse.get_pos()[1], self.selection_start_point[1]))
+        area_zone = pygame.Surface((weight, height), pygame.SRCALPHA)
+        area_zone.fill((0, 120, 215, 100))
+        return area_zone, top_left_corner
 
 #players = set([Player(i, i) for i in range(3)])
 #goblins = set([Goblin(i, i) for i in range(4, 10)])

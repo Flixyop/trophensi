@@ -8,12 +8,18 @@ class Camera():
         self.y = (WORLD_HEIGHT * PIXEL_SIZE) // 2 - (SCREEN_SIZE[1] // 2) 
         self.size = 100
         self.pos = (self.x, self.y)
-        self.speed = 5   
+        self.speed = 10
         self.marge = 100
         self.marge_corner = 150
 
     def update(self):
-        if not pygame.mouse.get_focused():
+        rel_x, rel_y = pygame.mouse.get_rel()
+        if pygame.mouse.get_pressed()[0]: 
+            self.x -= rel_x
+            self.y -= rel_y
+            return
+
+        elif not pygame.mouse.get_focused():
             return
         mouse_x, mouse_y = pygame.mouse.get_pos()
         screen_w, screen_h = SCREEN_SIZE[0], SCREEN_SIZE[1]
@@ -26,6 +32,7 @@ class Camera():
         in_col_right = mouse_x > screen_w - self.marge_corner
         in_row_top = mouse_y < self.marge_corner
         in_row_bottom = mouse_y > screen_h - self.marge_corner
+
 
         if in_col_left and in_row_top:
             move_left = True
@@ -54,3 +61,5 @@ class Camera():
         if move_right: self.x += self.speed
         if move_up: self.y -= self.speed
         if move_down: self.y += self.speed
+        
+        
