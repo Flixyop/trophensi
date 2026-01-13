@@ -53,25 +53,26 @@ class Game:
         self.assets["grass"] = self.format_asset(grass_img_raw)
 
 
-        mapping = {
-        0: 5,   # Isolé -> tuile pleine terre
-        1: 13,  # Haut seulement
-        2: 12,  # Droite seulement
-        3: 8,   # Haut + Droite (Coin)
-        4: 1,   # Bas seulement
-        5: 9,   # Haut + Bas (Ligne verticale)
-        6: 4,   # Droite + Bas (Coin)
-        7: 0,   # Haut + Droite + Bas (T)
-        8: 15,  # Gauche seulement
-        9: 11,  # Haut + Gauche (Coin)
-        10: 14, # Droite + Gauche (Ligne horizontale)
-        11: 3,  # Haut + Droite + Gauche (T)
-        12: 7,  # Bas + Gauche (Coin)
-        13: 10, # Haut + Bas + Gauche (T)
-        14: 6,  # Droite + Bas + Gauche (T)
-        15: 2   # Croisement complet
+        self.mapping = {
+            0: 6,
+            1: 6,
+            2: 6,
+            3: 6,
+            4: 6,
+            5: 6,
+            6: 6,
+            7: 6,
+            8: 6,
+            9: 6,
+            10: 6,
+            11: 6,
+            12: 6,
+            13: 6,
+            14: 6,
+            15: 6
         }
         self.assets["paths"] = {}
+
         for i in range(16):
             row = i // 4
             col = i % 4
@@ -204,7 +205,8 @@ class Game:
                     
                     pos_x = (x * PIXEL_SIZE) - self.camera.x
                     pos_y = (y * PIXEL_SIZE) - self.camera.y
-                    self.screen.blit(self.assets["paths"][score], (pos_x, pos_y))
+                    tile_index = self.mapping[score]
+                    self.screen.blit(self.assets["paths"][tile_index], (pos_x, pos_y))
         
         bg_x = self.village_pos_x - self.camera.x
         bg_y = self.village_pos_y - self.camera.y
@@ -289,9 +291,12 @@ class Game:
                 elif curr_x != target_x:
                     curr_x += 1 if target_x > curr_x else -1
                 
-            if 0 <= curr_x < WORLD_WIDTH and 0 <= curr_y < WORLD_HEIGHT:
-                if self.map_data[curr_x][curr_y] == 0:
-                    self.map_data[curr_x][curr_y] = 1
+            for dx in range(-1, 2):
+                for dy in range(-1, 2):
+                    nx, ny = curr_x + dx, curr_y + dy
+                    if 0 <= nx < WORLD_WIDTH and 0 <= ny < WORLD_HEIGHT:
+                        if self.map_data[nx][ny] == 0:
+                            self.map_data[nx][ny] = 1
 
 #players = set([Player(i, i) for i in range(3)])
 #goblins = set([Goblin(i, i) for i in range(4, 10)])
