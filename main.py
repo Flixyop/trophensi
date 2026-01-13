@@ -54,22 +54,22 @@ class Game:
 
 
         self.mapping = {
-            0: 6,
-            1: 6,
-            2: 6,
-            3: 6,
-            4: 6,
-            5: 6,
-            6: 6,
-            7: 6,
-            8: 6,
-            9: 6,
-            10: 6,
-            11: 6,
-            12: 6,
-            13: 6,
-            14: 6,
-            15: 6
+            0: 6,   # Isolé (aucun voisin)
+            1: 3,   # Voisin : HAUT seulement
+            2: 11,   # Voisin : DROITE seulement
+            3: 8,   # Voisins : HAUT + DROITE (Coin)
+            4: 9,   # Voisin : BAS seulement
+            5: 6,   # Voisins : HAUT + BAS (Ligne verticale)
+            6: 6,   # Voisins : DROITE + BAS (Coin)
+            7: 6,   # Voisins : HAUT + DROITE + BAS (Bord gauche)
+            8: 6,   # Voisin : GAUCHE seulement
+            9: 6,   # Voisins : HAUT + GAUCHE (Coin)
+            10: 6,  # Voisins : DROITE + GAUCHE (Ligne horizontale)
+            11: 6,  # Voisins : HAUT + DROITE + GAUCHE (Bord bas)
+            12: 6,  # Voisins : BAS + GAUCHE (Coin)
+            13: 6,  # Voisins : HAUT + BAS + GAUCHE (Bord droit)
+            14: 6,  # Voisins : DROITE + BAS + GAUCHE (Bord haut)
+            15: 6   # Voisins : PARTOUT (Centre du chemin)
         }
         self.assets["paths"] = {}
 
