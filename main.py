@@ -2,6 +2,7 @@ from utils import GRASS_TILESET_ASSET
 from utils import PIXEL_SIZE
 import pygame
 import random
+import math
 from entity import Entity, Player, Goblin
 from utils import *
 from direction import Direction
@@ -50,6 +51,33 @@ class Game:
         
 
         self.assets["grass"] = self.format_asset(grass_img_raw)
+
+
+        mapping = {
+        0: 5,   # Isolé -> tuile pleine terre
+        1: 13,  # Haut seulement
+        2: 12,  # Droite seulement
+        3: 8,   # Haut + Droite (Coin)
+        4: 1,   # Bas seulement
+        5: 9,   # Haut + Bas (Ligne verticale)
+        6: 4,   # Droite + Bas (Coin)
+        7: 0,   # Haut + Droite + Bas (T)
+        8: 15,  # Gauche seulement
+        9: 11,  # Haut + Gauche (Coin)
+        10: 14, # Droite + Gauche (Ligne horizontale)
+        11: 3,  # Haut + Droite + Gauche (T)
+        12: 7,  # Bas + Gauche (Coin)
+        13: 10, # Haut + Bas + Gauche (T)
+        14: 6,  # Droite + Bas + Gauche (T)
+        15: 2   # Croisement complet
+        }
+        self.assets["paths"] = {}
+        for i in range(16):
+            row = i // 4
+            col = i % 4
+            rect = pygame.Rect(col * tile_w, row * tile_h, tile_w, tile_h)
+            img = tileset.subsurface(rect)
+            self.assets["paths"][i] = self.format_asset(img)
        
         village_size_x = self.assets["village_map"].get_width()
         village_size_y = self.assets["village_map"].get_height()
@@ -72,8 +100,21 @@ class Game:
         # Partie Zone map
 
         self.map_data = [[0 for y in range(WORLD_HEIGHT)] for x in range(WORLD_WIDTH)]
+        for i in range(WORLD_WIDTH):
+            for j in range(WORLD_HEIGHT):
+                v_start_x = self.village_pos_x // PIXEL_SIZE
+                v_end_x = v_start_x + (self.assets["village_map"].get_width() // PIXEL_SIZE)
+                
+                v_start_y = self.village_pos_y // PIXEL_SIZE
+                v_end_y = v_start_y + (self.assets["village_map"].get_height() // PIXEL_SIZE)
+                if i >= v_start_x and i < v_end_x and j >= v_start_y and j < v_end_y:
+                    self.map_data[i][j] = -1
+        
+        self.generate_world()
+
 
     def run(self):
+
         self.running = True
         pygame.time.set_timer(self.MOVE_EVENT, 1000)
 
@@ -87,7 +128,7 @@ class Game:
 
     def draw(self):
         self.screen.fill((255, 255, 255))
-        self.draw_background()
+        self.draw_map()
         self.draw_entities()
         self.draw_screen_selection()
 
@@ -115,25 +156,13 @@ class Game:
 
         self.camera.update()
         pygame.display.flip()
+       
 
 
     def draw_image(self, img, x, y):
         pos_screen_x = (x * PIXEL_SIZE) - self.camera.x
         pos_screen_y = (y * PIXEL_SIZE) - self.camera.y
         self.screen.blit(self.assets[img], (pos_screen_x, pos_screen_y))
-
-
-    def draw_background(self):
-
-        start_col = max(0, self.camera.x // PIXEL_SIZE)
-        end_col = min(WORLD_WIDTH, (self.camera.x + SCREEN_SIZE[0]) // PIXEL_SIZE + 1)
-        
-        start_row = max(0, self.camera.y // PIXEL_SIZE)
-        end_row = min(WORLD_HEIGHT, (self.camera.y + SCREEN_SIZE[1]) // PIXEL_SIZE + 1)
-
-        for x in range(start_col, end_col):
-            for y in range(start_row, end_row):
-                self.draw_image("grass", x, y)
 
 
         bg_x = self.village_pos_x - self.camera.x
@@ -153,6 +182,33 @@ class Game:
             area_element = area[0]
             top_left_corner = area[1]
             self.screen.blit(area_element, top_left_corner)
+
+    def draw_map(self):
+        start_col = max(0, self.camera.x // PIXEL_SIZE)
+        end_col = min(WORLD_WIDTH, (self.camera.x + SCREEN_SIZE[0]) // PIXEL_SIZE + 1)
+        
+        start_row = max(0, self.camera.y // PIXEL_SIZE)
+        end_row = min(WORLD_HEIGHT, (self.camera.y + SCREEN_SIZE[1]) // PIXEL_SIZE + 1)
+
+        for x in range(start_col, end_col):
+            for y in range(start_row, end_row):
+                tile = self.map_data[x][y]
+                if tile == 0:
+                    self.draw_image("grass", x, y)
+                elif tile == 1:
+                    score = 0
+                    if y > 0 and self.map_data[x][y-1] != 0: score += 1
+                    if x < WORLD_WIDTH-1 and self.map_data[x+1][y] != 0: score += 2
+                    if y < WORLD_HEIGHT-1 and self.map_data[x][y+1] != 0: score += 4
+                    if x > 0 and self.map_data[x-1][y] != 0: score += 8
+                    
+                    pos_x = (x * PIXEL_SIZE) - self.camera.x
+                    pos_y = (y * PIXEL_SIZE) - self.camera.y
+                    self.screen.blit(self.assets["paths"][score], (pos_x, pos_y))
+        
+        bg_x = self.village_pos_x - self.camera.x
+        bg_y = self.village_pos_y - self.camera.y
+        self.screen.blit(self.assets["village_map"], (bg_x, bg_y))
 
 
 
@@ -190,6 +246,52 @@ class Game:
         area_zone = pygame.Surface((weight, height), pygame.SRCALPHA)
         area_zone.fill((0, 120, 215, 100))
         return area_zone, top_left_corner
+    
+    def generate_world(self):
+        self.structure_pos = []
+        antilag = 0
+
+        while len(self.structure_pos) < 10 and antilag < 10000:
+            antilag += 1
+            x = random.randint(0, WORLD_WIDTH - 1)
+            y = random.randint(0, WORLD_HEIGHT - 1)
+
+            if self.map_data[x][y] == 0:
+                can_place = True
+                for structure in self.structure_pos:
+                    if math.hypot(structure[0] - x, structure[1] - y) < 15:
+                        can_place = False
+                        break
+                
+                if can_place:
+                    self.structure_pos.append((x, y))
+                    self.map_data[x][y] = 2
+
+        v_center_x = (self.village_pos_x // PIXEL_SIZE) + (self.assets["village_map"].get_width() // PIXEL_SIZE // 2)
+        v_center_y = (self.village_pos_y // PIXEL_SIZE) + (self.assets["village_map"].get_height() // PIXEL_SIZE // 2)
+        
+        for poi in self.structure_pos:
+            self.create_path(poi, (v_center_x, v_center_y))
+
+    def create_path(self, start_pos, end_pos):
+        curr_x, curr_y = start_pos
+        target_x, target_y = end_pos
+        
+        while curr_x != target_x or curr_y != target_y:
+            if random.random() < 0.5:
+                if curr_x != target_x:
+                    curr_x += 1 if target_x > curr_x else -1
+                elif curr_y != target_y:
+                    curr_y += 1 if target_y > curr_y else -1
+            else:
+                if curr_y != target_y:
+                    curr_y += 1 if target_y > curr_y else -1
+                elif curr_x != target_x:
+                    curr_x += 1 if target_x > curr_x else -1
+                
+            if 0 <= curr_x < WORLD_WIDTH and 0 <= curr_y < WORLD_HEIGHT:
+                if self.map_data[curr_x][curr_y] == 0:
+                    self.map_data[curr_x][curr_y] = 1
 
 #players = set([Player(i, i) for i in range(3)])
 #goblins = set([Goblin(i, i) for i in range(4, 10)])

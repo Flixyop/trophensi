@@ -13,7 +13,7 @@ ZOOM_LEVEL = 3
 
 PIXEL_SIZE = TILE_SIZE_RAW * ZOOM_LEVEL
 
-village_coord = (30, 30)
+village_coord = (33, 33)
 
 
 # Assets
