@@ -21,4 +21,5 @@ village_coord = (33, 33)
 VILLAGE_MAP_ASSET = "assets/map/map_village.png"
 PLAYER_ASSET = "assets/entity/player/idle/1.png"
 GOBLIN_ASSET = "assets/entity/enemy/goblin/idle/1.png"
-GRASS_TILESET_ASSET = "assets/map/tilesets/path-grass.png"
+GRASS_TILESET_ASSET = "assets/map/tilesets/path-grass.png" 
+PATH_V2_ASSET = "assets/map/tilesets/path_v2.png" 

@@ -31,7 +31,8 @@ class Game:
             "goblin": pygame.image.load(GOBLIN_ASSET),
             "player": pygame.image.load(PLAYER_ASSET),
             "village": pygame.image.load(VILLAGE_MAP_ASSET), 
-            "tileset": pygame.image.load(GRASS_TILESET_ASSET),
+            "tileset_grass": pygame.image.load(GRASS_TILESET_ASSET),
+            "tileset_path": pygame.image.load(PATH_V2_ASSET),    
         }
         
         self.assets = {}
@@ -40,7 +41,7 @@ class Game:
         self.assets["goblin"]  = self.format_asset(raw_assets["goblin"])
         self.assets["village_map"] = self.format_asset(raw_assets["village"])
 
-        tileset = raw_assets["tileset"]
+        tileset = raw_assets["tileset_grass"]
         ts_w, ts_h = tileset.get_size()
         tile_w = ts_w // 4 
         tile_h = ts_h // 4 
@@ -54,30 +55,36 @@ class Game:
 
 
         self.mapping = {
-            0: 6,   # Isolé (aucun voisin)
-            1: 3,   # Voisin : HAUT seulement
-            2: 11,   # Voisin : DROITE seulement
-            3: 8,   # Voisins : HAUT + DROITE (Coin)
-            4: 9,   # Voisin : BAS seulement
-            5: 6,   # Voisins : HAUT + BAS (Ligne verticale)
-            6: 6,   # Voisins : DROITE + BAS (Coin)
-            7: 6,   # Voisins : HAUT + DROITE + BAS (Bord gauche)
-            8: 6,   # Voisin : GAUCHE seulement
-            9: 6,   # Voisins : HAUT + GAUCHE (Coin)
-            10: 6,  # Voisins : DROITE + GAUCHE (Ligne horizontale)
-            11: 6,  # Voisins : HAUT + DROITE + GAUCHE (Bord bas)
-            12: 6,  # Voisins : BAS + GAUCHE (Coin)
-            13: 6,  # Voisins : HAUT + BAS + GAUCHE (Bord droit)
-            14: 6,  # Voisins : DROITE + BAS + GAUCHE (Bord haut)
-            15: 6   # Voisins : PARTOUT (Centre du chemin)
+            # --- LES LIGNES DROITES ---
+            5: 1,   # Ligne Verticale (Haut + Bas)
+            10: 0,  # Ligne Horizontale (Gauche + Droite)
+            # --- LES 4 TOURNANTS ---
+            3: 4,   # Tournant Haut + Droite
+            6: 4,   # Tournant Bas + Droite
+            9: 9,   # Tournant Haut + Gauche
+            12: 9,  # Tournant Bas + Gauche
+            # --- LES FINS DE CHEMIN  ---
+            1: 1,   # Cul-de-sac vers le haut
+            4: 1,   # Cul-de-sac vers le bas
+            2: 1,   # Cul-de-sac vers la droite
+            8: 1,   # Cul-de-sac vers la gauche
+            # --- LES JONCTIONS EN "T" (3 directions connectées) ---
+            7: 2,  # T vers la DROITE (Continue en Haut, Droite, Bas)
+            11: 6,  # T vers le BAS (Continue en Haut, Droite, Gauche)
+            13: 3,  # T vers la GAUCHE (Continue en Haut, Bas, Gauche)
+            14: 7,  # T vers le HAUT (Continue en Droite, Bas, Gauche)
+            # --- LES CROISEMENTS ---
+            15: 1,  # Carrefour (4 directions)
         }
-        self.assets["paths"] = {}
 
+        self.assets["paths"] = {}
+        tileset_path = raw_assets["tileset_path"]
         for i in range(16):
             row = i // 4
             col = i % 4
+            # On découpe dans tileset_path
             rect = pygame.Rect(col * tile_w, row * tile_h, tile_w, tile_h)
-            img = tileset.subsurface(rect)
+            img = tileset_path.subsurface(rect)
             self.assets["paths"][i] = self.format_asset(img)
        
         village_size_x = self.assets["village_map"].get_width()
@@ -205,7 +212,7 @@ class Game:
                     
                     pos_x = (x * PIXEL_SIZE) - self.camera.x
                     pos_y = (y * PIXEL_SIZE) - self.camera.y
-                    tile_index = self.mapping[score]
+                    tile_index = self.mapping.get(score, 1)
                     self.screen.blit(self.assets["paths"][tile_index], (pos_x, pos_y))
         
         bg_x = self.village_pos_x - self.camera.x
@@ -269,17 +276,36 @@ class Game:
                     self.structure_pos.append((x, y))
                     self.map_data[x][y] = 2
 
-        v_center_x = (self.village_pos_x // PIXEL_SIZE) + (self.assets["village_map"].get_width() // PIXEL_SIZE // 2)
-        v_center_y = (self.village_pos_y // PIXEL_SIZE) + (self.assets["village_map"].get_height() // PIXEL_SIZE // 2)
+        v_start_x = self.village_pos_x // PIXEL_SIZE
+        v_start_y = self.village_pos_y // PIXEL_SIZE
+
+        entrances = [
+            (v_start_x + 21, v_start_y),      # Entrée Haut
+            (v_start_x, v_start_y + 29),      # Entrée Gauche
+            (v_start_x + 49, v_start_y + 27)  # Entrée Droite
+        ]
         
         for poi in self.structure_pos:
-            self.create_path(poi, (v_center_x, v_center_y))
+            best_entrance = self.get_nearest_entrance(poi, entrances)
+            self.create_path(poi, best_entrance)
+
+    def get_nearest_entrance(self, poi_pos, entrances):
+        best_dist = 999999
+        best_ent = entrances[0]
+        for ent in entrances:
+            dist = math.hypot(poi_pos[0] - ent[0], poi_pos[1] - ent[1])
+            if dist < best_dist:
+                best_dist = dist
+                best_ent = ent
+        return best_ent
 
     def create_path(self, start_pos, end_pos):
         curr_x, curr_y = start_pos
         target_x, target_y = end_pos
         
+
         while curr_x != target_x or curr_y != target_y:
+
             if random.random() < 0.5:
                 if curr_x != target_x:
                     curr_x += 1 if target_x > curr_x else -1
@@ -290,13 +316,11 @@ class Game:
                     curr_y += 1 if target_y > curr_y else -1
                 elif curr_x != target_x:
                     curr_x += 1 if target_x > curr_x else -1
-                
-            for dx in range(-1, 2):
-                for dy in range(-1, 2):
-                    nx, ny = curr_x + dx, curr_y + dy
-                    if 0 <= nx < WORLD_WIDTH and 0 <= ny < WORLD_HEIGHT:
-                        if self.map_data[nx][ny] == 0:
-                            self.map_data[nx][ny] = 1
+            
+
+            if 0 <= curr_x < WORLD_WIDTH and 0 <= curr_y < WORLD_HEIGHT:
+                if self.map_data[curr_x][curr_y] == 0:
+                    self.map_data[curr_x][curr_y] = 1 
 
 #players = set([Player(i, i) for i in range(3)])
 #goblins = set([Goblin(i, i) for i in range(4, 10)])
